@@ -1,0 +1,46 @@
+﻿pravidla codu:
+- not using aliases (více čitelný kód pro ostatní)
+- dot sourcing (oddělené funkce)
+- paths přizpůsobeny IFPC filesystemu (používání IFPC proměnných pomocí Env:)
+
+funkcionality:
+- možnost vybrat, jestli chci brát skripty ze standartního adresáře nebo si vybrat podmnožinu sám vložením libovolného množství skriptů do složky input
+- možnost překládat skripty pomocí jiného toolu
+- před vložením skriptu do outputu se v outputu tento skript smaže
+- pokud se bude jednat o skript plnící číselník, tak se skript nebude promazávat
+- pokud nebude nalezen konec hlavičky (nebude se jednat o skript, tak bude soubor jen překopírován do output) -> nebude se promazávat
+- pokud nebude nalezen začátek i konec části zdrojového systému, tak se promaže vše mezi hlavičkou a patičkou
+- pokud nebude nalezen jen začátek nebo jen konec části zdrojového systému, tak se ponechá vše (může se jednat o chybu v definici částí zdrojových systémů) - mezi dalšími kroky zefektivnění nástroje proběhne revize skriptů se zaměřením na definici a pojmenování částí pro jednotlivé zdrojové systémy (aby v nich nebyly chyby a překlepy).
+
+
+Vývoj obecně (praktická část DP):
+- technicky: diagram funkcí a vztahy mezi nimi?
+- výběr technologie (java vs PS)
+- popis architektury datového skladu včetně popisu prostředí, ve kterém bude aplikace fungovat
+- popis požadavků na systém - funkční i nefunkční
+- popis stávajícího flow při načítání i-phase a flow pomocí nástroje (diagramy)
+- activity diagram (co se bude dělat v překladu
+- testování experimentem - porovnání dob běhů
+- testování - vytvoření testovacích scénářů
+- uživatelská dokumentace - jak nástroj používat (pro vývojáře)
+- dokumentace pro případnou customizaci nástroje a použití pro jiné projekty (nasdílení speciální zobecněné verze na GitHub) 
+- zasady:
+	- jmene konvence
+- provedena revize skriptu (Stringů oddelujici source systemy a stringu definujici zacatek a konec skriptu)
+
+
+todo:
+- vice zdrojovych systemu
+- preklady
+- vytvareni logu
+- zobecneni a parametrizace ---------OK
+	- kodovani ---------OK
+	- output folder i input folder ---------OK
+	- search stringy, ktere budou kopirovany ---------OK
+	- search stringy, ktere budou ignorovany ---------OK
+	- search stringy hledane ---------OK
+
+linky: https://stackoverflow.com/questions/3964009/using-powershell-how-do-i-delete-a-line-from-a-text-file-by-its-line-number
+https://www.itninja.com/question/calling-vbscript-in-powershell-1
+
+Edit-DTWBeautifyScript C:\Users\jrakos\documents\PowerShell-Beautifier-master\PowerShell-Beautifier-master\functions.ps1 -IndentType Tabs
