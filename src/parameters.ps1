@@ -8,8 +8,8 @@ $ignoreStrings = ""
 $copyStrings = "'ID_pkbaux_C_;Source system ENUM"
 
 $copyFromOwnInputFolder = $false
-$ownInputFolder = "C:\Users\jrakos\Dropbox\Škola\VŠE -Inženýr\Diplomka\code\I_Phase"
-$mainFolder = "C:\Users\jrakos\Dropbox\Škola\VŠE -Inženýr\Diplomka\code\I_Phase_Selected"
+$ownInputFolder = "C:\git\I_Phase"
+$mainFolder = "C:\git\I_Phase_selected"
 
 $inputFilesEncoding = "utf8"
 

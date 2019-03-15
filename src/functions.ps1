@@ -7,6 +7,7 @@ function Main () {
   else {
     $inputFolder = "$mainFolder\input"
   }
+  $logFile = createLogFile
   $allFiles = Get-ChildItem -Path $inputFolder | Where-Object { !$_.PSIsContainer } | Sort-Object
   foreach ($file in $allFiles) {
     deleteFilefromOutput $file
@@ -18,15 +19,15 @@ function Main () {
     $ignoreStringsArray = createArrayFromString $ignoreStrings
     $isAnyIgnoreStringInFile = isAnyStringFromArrayInFile $file $ignoreStringsArray
     if ($isAnyIgnoreStringInFile -eq $true) {
-        Write-Host "Script $fileName contains one or more ignore strings. Script was ignored and was not processed or copied to output."
+        logWrite $logFile "Script $fileName contains one or more ignore strings. Script was ignored and was not processed or copied to output."
     }
     elseif ($isAnyCopyStringInFile -eq $true) {
         copyFileToOoutput $file
-        Write-Host "Script $fileName contains one or more copy strings. Script was copied from input folder without processing."
+        logWrite $logFile "Script $fileName contains one or more copy strings. Script was copied from input folder without processing."
     }
     elseif ($ScriptStart -eq $null -or $ScriptEnd -eq $null -or $scriptStart -eq "MultipleRowsFoundError" -or $scriptEnd -eq "MultipleRowsFoundError") {
       copyFileToOoutput $file
-      Write-Host "WARNING: Problem in finding Start or End of skript $fileName. Script was copied from input folder without processing."
+      logWrite $logFile "WARNING: Problem in finding Start or End of skript $fileName. Script was copied from input folder without processing."
     }
     else {
         processFileForOneSourceSystem $file $scriptStart $scriptEnd
@@ -161,22 +162,35 @@ function processFileForOneSourceSystem ($file, [int]$scriptStart, [int]$scriptEn
     $sourceSystemEnd = getRowNumberOfText $replacedSourceEnd
     if ($SourceSystemStart -eq "MultipleRowsFoundError" -or $sourceSystemEnd -eq "MultipleRowsFoundError") {
       copyFileToOoutput $file
-      Write-Host "WARNING: Multiple Start or End strings of source system $SourceSystem was found in skript $fileName. Script was copied to output folder without processing."
+      logWrite $logFile "WARNING: Multiple Start or End strings of source system $SourceSystem was found in skript $fileName. Script was copied to output folder without processing."
     }
     elseif ($SourceSystemStart -eq $null -and $SourceSystemEnd -eq $null) {
       deleteAllLines $file $scriptStart $scriptEnd
-      Write-Host "Source system $SourceSystem was not found in script $fileName. Lines between start and end of the script was deleted."
+      logWrite $logFile "Source system $SourceSystem was not found in script $fileName. Lines between start and end of the script was deleted."
     }
     elseif ($SourceSystemStart -eq $null -or $SourceSystemEnd -eq $null) {
       copyFileToOoutput $file
-      Write-Host "WARNING: Start or End string of source system $SourceSystem is missing in script $fileName. Script was copied to output folder without processing."
+      logWrite $logFile "WARNING: Start or End string of source system $SourceSystem is missing in script $fileName. Script was copied to output folder without processing."
     }
     else {
       deleteLinesForOneSource $file $scriptStart $scriptEnd $SourceSystemStart $SourceSystemEnd
-      Write-Host "File $fileName was processed succesfully."
+      logWrite $logFile "File $fileName was processed succesfully."
     }
 }
 
 function processFileForMultipleSourceSystems  {
 
+}
+
+function createLogFile {
+    $logFileDir = "$mainFolder\log"
+    $Stamp = (Get-Date).toString("dd-MM-yyyy HHmmss")
+    $logFileName = "run." + $Stamp -replace " ","."
+    $newLogFile = New-Item "$logFileDir\$logFileName.log" -ItemType file 
+    return $newLogFile
+}
+
+function logWrite ($logFile, [string]$message) {
+    Add-Content $logFile -Value $message
+    Write-Host $message
 }
