@@ -17,3 +17,4 @@ if (!($arrayFromString[0] -eq "" -and $arrayFromString.count -eq 1)) {
 else {
 write-host "nedelej nic"
 }
+
