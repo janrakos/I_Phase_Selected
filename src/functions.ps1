@@ -1,5 +1,6 @@
 function Main () {
   $ErrorActionPreference = "Stop"
+  $logFile = createLogFile
   try {
   validateParameters
   $outputFolder = "$mainFolder\output"
@@ -9,7 +10,6 @@ function Main () {
   else {
     $inputFolder = "$mainFolder\input"
   }
-  $logFile = createLogFile
   $allFiles = Get-ChildItem -Path $inputFolder | Where-Object { !$_.PSIsContainer } | Sort-Object
   Remove-Item "$outputFolder\*.*"
   if ($isConversionWanted -eq $true -and $doOnlyConversion -eq $true) {
@@ -219,7 +219,8 @@ function createLogFile {
 }
 
 function logWrite ($logFile, [string]$message) {
-    Add-Content $logFile -Value $message
+    $Stamp = (Get-Date).toString("dd.MM.yyyy HH:mm:ss")
+    Add-Content $logFile -Value "$Stamp     $message"
     Write-Host $message
 }
 
