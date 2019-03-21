@@ -32,15 +32,18 @@ Vývoj obecně (praktická část DP):
 todo:
 - vice zdrojovych systemu
 - preklady
-- vytvareni logu
-- zobecneni a parametrizace ---------OK
-	- kodovani ---------OK
-	- output folder i input folder ---------OK
-	- search stringy, ktere budou kopirovany ---------OK
-	- search stringy, ktere budou ignorovany ---------OK
-	- search stringy hledane ---------OK
+- odstraneni vsech line
 
 linky: https://stackoverflow.com/questions/3964009/using-powershell-how-do-i-delete-a-line-from-a-text-file-by-its-line-number
 https://www.itninja.com/question/calling-vbscript-in-powershell-1
 
 Edit-DTWBeautifyScript C:\Users\jrakos\documents\PowerShell-Beautifier-master\PowerShell-Beautifier-master\functions.ps1 -IndentType Tabs
+
+
+
+
+pozadavky clenit podle pozadavku od vyvojaru a od autora pro zefektivneni systemu
+- napr. vybrat konkrewtni skript pro kopirovani, kvuli zmene ciloveho DDL
+- ignore skripty - aby se zbytecne neprocesovaly nepotrebne skripty
+
+nyni odpadla nevyhoda v procesu :) - nyni se logy vytvari v poslednim testu nasazovaneho balicku, tento tool je vsak urcen pro prvotni testovani nebo pro loadovani testovacich dat, ale pro nasazovani urvćen neni

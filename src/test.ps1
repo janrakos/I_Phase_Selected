@@ -18,3 +18,5 @@ else {
 write-host "nedelej nic"
 }
 
+
+Remove-Item "C:\git\I_Phase_selected\output\*.*"
