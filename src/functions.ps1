@@ -39,11 +39,8 @@ function Main () {
         copyFileToFolder $file $inputFolder $outputFolder
         logWrite "WARNING: Problem in finding Start or End of skript $fileName. Script was copied from input folder without processing."
       }
-      elseif ($sourceSystem -match ";") {
-        processFileForMultipleSourceSystems
-      }
       else {
-        processFileForOneSourceSystem
+        processFile $file
       }
     }
   }
@@ -134,15 +131,15 @@ function createEmptiedFileInFolder ($file, $sourceFolder, $targetFolder) {
     Clear-Content "$targetFolder\$fileName"
 }
 
-function createFileFromArray ($file, [System.Collections.ArrayList]$array) {
+function createFileFromArray ($file, [System.Collections.ArrayList]$array, $folder) {
   $fileName = $file.Name
   if ($inputFilesEncoding.ToLower() -eq 'utf8') {
   $Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
-  $newUtf8File = [System.IO.File]::WriteAllLines("$outputFolder\$fileName", $array, $Utf8NoBomEncoding)
+  $newUtf8File = [System.IO.File]::WriteAllLines("$folder\$fileName", $array, $Utf8NoBomEncoding)
   return $newUtf8File
   }
   else {
-  $newFile = New-Item "$outputFolder\$fileName" -ItemType file 
+  $newFile = New-Item "$folder\$fileName" -ItemType file 
   $array | Out-File $newFile -Encoding $inputFilesEncoding
   return $newFile
   }
@@ -155,7 +152,7 @@ function createArrayFromString ([string]$string) {
     $arrayFromString[$arrayCounter] = $string.trim()
     $arrayCounter++
     }
-    return ,$arrayFromString
+    return ,$arrayFromString #quote is important for keeping array data type when array is empty
 }
 
 function isAnyStringFromArrayInFile ($file, $stringArray) {
@@ -173,46 +170,16 @@ function isAnyStringFromArrayInFile ($file, $stringArray) {
     }
 }
 
-function processFileForOneSourceSystem () {    $sourceSystemStartString = "source system SourceSystemName script start"
-    $sourceSystemEndString = "source system SourceSystemName script end"    $replacedSourceStart = $sourceSystemStartString -replace "SourceSystemName",$sourceSystem
-    $replacedSourceEnd = $sourceSystemEndString -replace "SourceSystemName",$sourceSystem
-    $sourceSystemStart = getRowNumberOfText $file $replacedSourceStart
-    $sourceSystemEnd = getRowNumberOfText $file $replacedSourceEnd
-    if ($SourceSystemStart -eq "MultipleRowsFoundError" -or $sourceSystemEnd -eq "MultipleRowsFoundError") {
-      copyFileToFolder $file $inputFolder $outputFolder
-      logWrite "WARNING: Multiple Start or End strings of source system $SourceSystem was found in skript $fileName. Script was copied to output folder without processing."
-    }
-    elseif ($SourceSystemStart -eq $null -and $SourceSystemEnd -eq $null) {
-      createEmptiedFileInFolder $file $inputFolder $outputFolder
-      logWrite "Source system $SourceSystem was not found in script $fileName. Content of the file was deleted."
-    }
-    elseif ($SourceSystemStart -eq $null -or $SourceSystemEnd -eq $null) {
-      copyFileToFolder $file $inputFolder $outputFolder
-      logWrite "WARNING: Start or End string of source system $SourceSystem is missing in script $fileName. Script was copied to output folder without processing."
-    }
-    else {
-      [System.Collections.ArrayList]$arrayFromFile = @(Get-Content "$inputFolder\$file" -encoding $inputFilesEncoding)
-      $startfrom1 = $scriptStart + 1
-      $count1 = $sourceSystemStart - $startfrom1 - 1
-      $startFrom2 = $sourceSystemEnd - $count1
-      $count2 = $scriptEnd - $sourceSystemEnd - 1
-      $arrayFromFile.removeRange($startfrom1,$count1)
-      $arrayFromFile.removeRange($startFrom2,$count2)
-      createFileFromArray $file $arrayFromFile
-      logWrite "File $fileName was processed succesfully."
-    }
-}
-
-function processFileForMultipleSourceSystems () {
+function processFile ($file) {
     $sourceSystemArray = createArrayFromString $sourceSystem
     $sourceSystemStartString = "source system SourceSystemName script start"
     $sourceSystemEndString = "source system SourceSystemName script end"
     $emptyFileFlag = $true
     $copyFileFlag = $false
+    $sourceSystemProcessSuccesFlag = $true
     [System.Collections.ArrayList]$SourceSystemStartLineNumbers = @()
     [System.Collections.ArrayList]$SourceSystemEndLineNumbers = @()
     foreach ($srcSystem in $sourceSystemArray) {
-        $sourceSystemProcessSuccesFlag = $true
         if ($sourceSystemProcessSuccesFlag -eq $true) {
             $replacedSourceStart = $sourceSystemStartString -replace "SourceSystemName",$srcSystem
             $replacedSourceEnd = $sourceSystemEndString -replace "SourceSystemName",$srcSystem
@@ -225,12 +192,19 @@ function processFileForMultipleSourceSystems () {
                 logWrite "WARNING: Multiple Start or End strings of source system $srcSystem was found in skript $fileName. Script was copied to output folder without processing."
             }
             elseif ($SourceSystemStart -eq $null -and $SourceSystemEnd -eq $null) {
+                #do nothing - behavior given by default values in flag parameters is needed
             }
             elseif ($SourceSystemStart -eq $null -or $SourceSystemEnd -eq $null) {
                 $emptyFileFlag = $false
                 $copyFileFlag = $true
                 $sourceSystemProcessSuccesFlag = $false
                 logWrite "WARNING: Start or End string of source system $srcSystem is missing in script $fileName. Script was copied to output folder without processing."
+            }
+            elseif ($sourceSystemStart -gt $sourceSystemEnd) {
+                $emptyFileFlag = $false
+                $copyFileFlag = $true
+                $sourceSystemProcessSuccesFlag = $false
+                logWrite "WARNING: Order of Start and End strings of source system $srcSystem in script $fileName is incorrect. Script was copied to output folder without processing."                
             }
             else {
                 $emptyFileFlag = $false
@@ -247,12 +221,27 @@ function processFileForMultipleSourceSystems () {
         logWrite "Any of source systems defined in `$SourceSystem parametr was not found in script $fileName. Content of the file was deleted."
     }
     else {
-      # Creating new file with HEAD of input file
+      # Creating new output file with HEAD of input file
       [System.Collections.ArrayList]$scriptHeadArray = @(Get-Content "$inputFolder\$file" -encoding $inputFilesEncoding)
       [int] $RowsInFile = $scriptHeadArray.count
       [int] $headEnd = $scriptStart + 1
       $scriptHeadArray.RemoveRange($headEnd,$RowsInFile - $headEnd)
-      createFileFromArray $file $scriptHeadArray
+      $outputFile = createFileFromArray $file $scriptHeadArray $outputFolder
+
+      # Insering source system/-s to output file
+      for ([int]$i=0; $i -lt $SourceSystemStartLineNumbers.count; $i++) {
+        [System.Collections.ArrayList]$sourceSystemArray = @(Get-Content "$inputFolder\$file" -encoding $inputFilesEncoding)
+        $count1 = $SourceSystemStartLineNumbers[$i] - 1
+        $sourceSystemArray.RemoveRange(0,$count1)
+        $arrayLength = $sourceSystemArray.count
+        $SrcEnd = $SourceSystemEndLineNumbers[$i] - $count1 + 1
+        $sourceSystemArray.RemoveRange($SrcEnd,$arrayLength - $SrcEnd)
+        Add-Content -Path "$outputFolder/$file" -Value $sourceSystemArray -encoding $inputFilesEncoding
+      }
+
+      # Insering FOOT from input file to output file
+
+
       logWrite "File $fileName was processed succesfully."
     }
 }

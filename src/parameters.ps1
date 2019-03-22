@@ -1,7 +1,7 @@
-$sourceSystem = "AIA4;ENUM;AIA"
+$sourceSystem = "AIA4;ENUM"
 
 $ignoreStrings = ""
-$copyStrings = "" #"'ID_pkbaux_C_;Source system ENUM"
+$copyStrings = ""
 
 $fromOwnInputFolder = $false
 $ownInputFolder = "C:\git\I_Phase"
