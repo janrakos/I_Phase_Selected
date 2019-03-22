@@ -135,13 +135,11 @@ function createFileFromArray ($file, [System.Collections.ArrayList]$array, $fold
   $fileName = $file.Name
   if ($inputFilesEncoding.ToLower() -eq 'utf8') {
   $Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
-  $newUtf8File = [System.IO.File]::WriteAllLines("$folder\$fileName", $array, $Utf8NoBomEncoding)
-  return $newUtf8File
+  [System.IO.File]::WriteAllLines("$folder\$fileName", $array, $Utf8NoBomEncoding)
   }
   else {
   $newFile = New-Item "$folder\$fileName" -ItemType file 
   $array | Out-File $newFile -Encoding $inputFilesEncoding
-  return $newFile
   }
 }
 
@@ -224,9 +222,9 @@ function processFile ($file) {
       # Creating new output file with HEAD of input file
       [System.Collections.ArrayList]$scriptHeadArray = @(Get-Content "$inputFolder\$file" -encoding $inputFilesEncoding)
       [int] $RowsInFile = $scriptHeadArray.count
-      [int] $headEnd = $scriptStart + 1
+      [int] $headEnd = $scriptStart + 2
       $scriptHeadArray.RemoveRange($headEnd,$RowsInFile - $headEnd)
-      $outputFile = createFileFromArray $file $scriptHeadArray $outputFolder
+      createFileFromArray $file $scriptHeadArray $outputFolder
 
       # Insering source system/-s to output file
       for ([int]$i=0; $i -lt $SourceSystemStartLineNumbers.count; $i++) {
@@ -240,7 +238,10 @@ function processFile ($file) {
       }
 
       # Insering FOOT from input file to output file
-
+      [System.Collections.ArrayList]$scriptFootArray = @(Get-Content "$inputFolder\$file" -encoding $inputFilesEncoding)
+      [int] $footStart = $scriptEnd - 1
+      $scriptFootArray.RemoveRange(0,$footStart)
+      Add-Content -Path "$outputFolder/$file" -Value $scriptFootArray -encoding $inputFilesEncoding
 
       logWrite "File $fileName was processed succesfully."
     }
