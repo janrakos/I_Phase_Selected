@@ -20,3 +20,8 @@ write-host "nedelej nic"
 
 
 Remove-Item "C:\git\I_Phase_selected\output\*.*"
+
+$string = "ID_pkbaux_C_Adjustment_Type.txt"
+$string = $string.Remove(0,10)
+$string.IndexOf(".txt")
+$string = $string.Remove($string.IndexOf(".txt"),3)

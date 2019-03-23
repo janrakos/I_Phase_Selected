@@ -16,8 +16,8 @@ function Main () {
         else {
             $scriptStartString = "MD_SCRIPT_TIMES.SCRIPT_START"
             $scriptEndString = "MD_SCRIPT_TIMES.SCRIPT_END"
-            $copyStringsArray = createArrayFromString $copyStrings
-            $ignoreStringsArray = createArrayFromString $ignoreStrings
+            $copyStringsArray = createArrayFromString $copyFileStrings
+            $ignoreStringsArray = createArrayFromString $ignoreFileStrings
             foreach ($file in $allFiles) {
                 $fileName = $file.Name
                 $scriptStart = getRowNumberOfText $file $scriptStartString
@@ -40,11 +40,15 @@ function Main () {
                 }
             }
         }
-        $processedFiles = Get-ChildItem -Path $outputFolder | Where-Object { !$_.PSIsContainer } | Sort-Object
+        $outputFiles = Get-ChildItem -Path $outputFolder | Where-Object { !$_.PSIsContainer } | Sort-Object
+        if ($isConversionWanted -eq $true) {
+            convertFiles $outputFiles
+        }
         if ($createFilesForIFPC -eq $true) {
-            foreach ($file in $processedFiles) {
+            foreach ($file in $outputFiles) {
                 copyFileToFolder $file $outputFolder $IFPCFolder
             }
+            logWrite "Files in output folder were succesfully copied to $IFPCFolder."
         }
     }
     Catch {
@@ -69,7 +73,7 @@ function createLogFile () {
     return $newLogFile
 }
 
-function logWrite ([string]$message) {
+function logWrite ($message) {
     $Stamp = (Get-Date).toString("dd.MM.yyyy HH:mm:ss")
     Add-Content $logFile -Value "$Stamp     $message"
     Write-Host $message
@@ -109,17 +113,17 @@ function validateParameters () {
     if (!($doOnlyConversion -is [bool]) -and $isConversionWanted -eq $true) {
         throw "Parametr `$doOnlyConversion is not set properly. It's value have to be $true or $false."
     }
-    if (!($targetEnvironment.ToLower() -in "dev", "kpse", "kpseuat", "" ) -and $isConversionWanted -eq $true) {
-        throw "Parametr `$targetEnvironment does not have valid value. Check documentation for more information about this parametr."
-    }
-    if (!($productionDataLoad -is [bool]) -and $isConversionWanted -eq $true) {
-        throw "Parametr `$productionDataLoad is not set properly. It's value have to be $true or $false."
-    }
-    if (!($ownConversionDefinitionFile -is [bool]) -and $isConversionWanted -eq $true) {
+    if (!($ownConfigurationFile -is [bool]) -and $isConversionWanted -eq $true) {
         throw "Parametr `$ownConversionDefinitionFile is not set properly. It's value have to be $true or $false."
     }
-    if (!(Test-Path "$mainFolder\src\cfg\$ConversionDefinitionFile") -and $isConversionWanted -eq $true -and $ownConversionDefinitionFile -eq $true) {
+    if (!(Test-Path "$mainFolder\src\cfg\$ConversionDefinitionFile") -and $isConversionWanted -eq $true -and $ownConfigurationFile -eq $true) {
         throw "File $ConversionDefinitionFile does not exist."
+    }
+    if (!($targetEnvironment.ToLower() -in "dev", "kpse", "kpseuat" ) -and $isConversionWanted -eq $true -and $ownConfigurationFile -eq $false) {
+        throw "Parametr `$targetEnvironment does not have valid value. Check documentation for more information about this parametr."
+    }
+    if (!($productionDataLoad -is [bool]) -and $isConversionWanted -eq $true -and $ownConfigurationFile -eq $false) {
+        throw "Parametr `$productionDataLoad is not set properly. It's value have to be $true or $false."
     }
 }
 
@@ -143,7 +147,7 @@ function deleteFilefromFolder ($file, $folder) {
 function copyFileToFolder ($file, $sourceFolder, $targetFolder) {
     $fileName = $file.Name
     deleteFilefromFolder $file $targetFolder
-    Copy-Item -Path "$sourceFolder\$fileName" -Destination $targetFolder
+    Copy-Item "$sourceFolder\$fileName" -Destination $targetFolder
 }
 
 function createArrayFromString ($string) {
@@ -185,7 +189,7 @@ function getRowNumberOfText ($file, $search) {
     }
 }
 
-function createEmptiedFileInFolder ($file, $sourceFolder, $targetFolder) {
+function copyEmptiedFileToFolder ($file, $sourceFolder, $targetFolder) {
     $fileName = $file.Name
     copyFileToFolder $file $sourceFolder $targetFolder
     Clear-Content "$targetFolder\$fileName"
@@ -250,14 +254,14 @@ function processFile ($file) {
         copyFileToFolder $file $inputFolder $outputFolder
     }
     elseif ($emptyFileFlag -eq $true) {
-        createEmptiedFileInFolder $file $inputFolder $outputFolder
+        copyEmptiedFileToFolder $file $inputFolder $outputFolder
         logWrite "Any of source systems defined in `$SourceSystem parametr was not found in script $fileName. Content of the file was deleted."
     }
     else {
       # Creating new output file with HEAD of input file
       [System.Collections.ArrayList]$scriptHeadArray = @(Get-Content "$inputFolder\$file" -encoding $inputFilesEncoding)
-      [int] $RowsInFile = $scriptHeadArray.count
-      [int] $headEnd = $scriptStart + 2  
+      $RowsInFile = $scriptHeadArray.count
+      $headEnd = $scriptStart + 1  
       $scriptHeadArray.RemoveRange($headEnd,$RowsInFile - $headEnd)
       createFileFromArray $file $scriptHeadArray $outputFolder
 
@@ -267,19 +271,68 @@ function processFile ($file) {
         $count1 = $SourceSystemStartLineNumbers[$i] - 1
         $sourceSystemArray.RemoveRange(0,$count1)
         $arrayLength = $sourceSystemArray.count
-        $SrcEnd = $SourceSystemEndLineNumbers[$i] - $count1 + 1
+        $SrcEnd = $SourceSystemEndLineNumbers[$i] - $count1
         $sourceSystemArray.RemoveRange($SrcEnd,$arrayLength - $SrcEnd)
-        Add-Content -Path "$outputFolder/$file" -Value $sourceSystemArray -encoding $inputFilesEncoding
+        Add-Content "$outputFolder/$file" -Value $sourceSystemArray -encoding $inputFilesEncoding
       }
 
       # Insering FOOT from input file to output file
       [System.Collections.ArrayList]$scriptFootArray = @(Get-Content "$inputFolder\$file" -encoding $inputFilesEncoding)
       $footStart = $scriptEnd - 1
       $scriptFootArray.RemoveRange(0,$footStart)
-      Add-Content -Path "$outputFolder/$file" -Value $scriptFootArray -encoding $inputFilesEncoding
+      Add-Content "$outputFolder/$file" -Value $scriptFootArray -Encoding $inputFilesEncoding
 
       logWrite "File $fileName was processed succesfully."
     }
 }
 
+function convertFiles ($files) {
+    if ($ownConfigurationFile -eq $true) {
+        $conversionDefinitionFile = $configurationFile
+    }
+    else {
+        $patternFile = "$mainFolder\src\cfg\defaultConfigurationPattern.cfg"
+        $generatedFile = "$mainFolder\src\cfg\generatedConfiguration.cfg"
+        Clear-Content $generatedFile
+        Get-Content -Path $patternFile -Encoding $inputFilesEncoding | Set-Content -Path $generatedFile
+        replaceStringInFile $generatedFile "\*ENV\*" $targetEnvironment
+        if ($productionDataLoad -eq $true) {
+            replaceStringInFile $generatedFile "\*TESTLOAD\*.*\n" $null
+            foreach ($file in $files) {
+                If ((Get-Content $file.FullName) -ne $Null) {
+                    $tableName = $file.Name
+                    $tableName = $tableName.Remove(0,10)
+                    $tableName = $tableName.Remove($tableName.IndexOf(".txt"),4)
+                    Add-Content -Path $generatedFile -Value "pkb_aux.$tableName#pkb_aux_$targetEnvironment.$tableName" -Encoding $inputFilesEncoding
+                }
+            }
+        }
+        else {
+            replaceStringInFile $generatedFile "\*TESTLOAD\*" $null
+        }
+        $conversionDefinitionFile = $generatedFile
+    }
+    $ConvDefFileRows = @(Get-Content $conversionDefinitionFile -encoding $inputFilesEncoding)
+    $patterns = @()
+    $replacingStrings = @()
+    foreach ($fileRow in $ConvDefFileRows) {
+        if ($fileRow -ne "") {
+            $separatorIndex = $fileRow.IndexOf("#")
+            $fileRowLength = $fileRow.length
+            $pattern = $fileRow.Substring(0,$separatorIndex)
+            $replacingString = $fileRow.Substring($separatorIndex+1,$fileRowLength-$separatorIndex-1)
+            $patterns += $pattern
+            $replacingStrings += $replacingString
+        }
+    }
+    foreach ($file in $files) {
+        for ($i=0; $i -lt $patterns.count; $i++) {
+            replaceStringInFile $file.FullName $patterns[$i] $replacingStrings[$i]
+        }
+    }
+    logWrite "Files in output folder were succesfully converted using configuration file $conversionDefinitionFile."
+}
 
+function replaceStringInFile ($file, $pattern, $replacingString) {
+    ((Get-Content $file -Raw -encoding $inputFilesEncoding) -replace $pattern, $replacingString) | Set-Content $file -encoding $inputFilesEncoding
+}
