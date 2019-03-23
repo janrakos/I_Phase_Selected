@@ -8,7 +8,7 @@ $inputFilesEncoding = "utf8"
 
 
 <# Folder Management Parameters #>
-$mainFolder = "C:\git\I_Phase_selected"
+$mainFolder = "C:\git\I_Phase_selected" # base folder with needed subfolders and files
 $fromOwnInputFolder = $false
 $ownInputFolder = "C:\git\I_Phase"
 $createFilesForIFPC = $true

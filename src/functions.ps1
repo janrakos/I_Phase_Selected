@@ -106,11 +106,17 @@ function validateParameters () {
     if (!($isConversionWanted -is [bool])) {
         throw "Parametr `$isConversionWanted is not set properly. It's value have to be $true or $false."
     }
-    if (!($doOnlyConversion -is [bool])) {
+    if (!($doOnlyConversion -is [bool]) -and $isConversionWanted -eq $true) {
         throw "Parametr `$doOnlyConversion is not set properly. It's value have to be $true or $false."
     }
-    if (!($inputFilesEncoding.ToLower() -in "unknown", "string", "unicode", "bigendianunicode", "utf8", "utf7", "utf32", "ascii", "default", "oem" )) {
-        throw "Parametr `$inputFilesEncoding does not have valid value. Check documentation for more information about this parametr."
+    if (!($targetEnvironment.ToLower() -in "dev", "kpse", "kpseuat", "" ) -and $isConversionWanted -eq $true) {
+        throw "Parametr `$targetEnvironment does not have valid value. Check documentation for more information about this parametr."
+    }
+    if (!($productionDataLoad -is [bool]) -and $isConversionWanted -eq $true) {
+        throw "Parametr `$productionDataLoad is not set properly. It's value have to be $true or $false."
+    }
+    if (!($ownConversionDefinitionFile -is [bool]) -and $isConversionWanted -eq $true) {
+        throw "Parametr `$ownConversionDefinitionFile is not set properly. It's value have to be $true or $false."
     }
     if (!(Test-Path "$mainFolder\src\cfg\$ConversionDefinitionFile") -and $isConversionWanted -eq $true -and $ownConversionDefinitionFile -eq $true) {
         throw "File $ConversionDefinitionFile does not exist."
