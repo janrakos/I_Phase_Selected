@@ -1,15 +1,12 @@
 function Main () {
   $ErrorActionPreference = "Stop"
+  $mainFolder = "C:\git\I_Phase_selected"
+  $outputFolder = setUpDir "output"
+  $logFileFolder = setUpDir "log"
   $logFile = createLogFile
   try {
   validateParameters
-  $outputFolder = "$mainFolder\output"
-  if ($fromOwnInputFolder -eq $true) {
-    $inputFolder = $ownInputFolder
-  }
-  else {
-    $inputFolder = "$mainFolder\input"
-  }
+  $inputFolder = setUpInputDir
   $allFiles = Get-ChildItem -Path $inputFolder | Where-Object { !$_.PSIsContainer } | Sort-Object
   Remove-Item "$outputFolder\*.*"
   if ($isConversionWanted -eq $true -and $doOnlyConversion -eq $true) {
@@ -59,6 +56,24 @@ Catch {
 }
 }
 
+function setUpDir ($dir) {
+    if (!(Test-Path "$mainFolder\$dir")) {
+        New-Item "$mainFolder\$dir" -itemtype directory
+    }
+    $outputFolder = "$mainFolder\$dir"
+    return $outputFolder
+}
+
+function setUpInputDir () {
+    if ($fromOwnInputFolder -eq $true) {
+        $inputFolder = $ownInputFolder
+    }
+    else {
+        $inputFolder = "$mainFolder\input"
+    }
+    return $inputFolder
+}
+
 function validateParameters () {
   if (!($fromOwnInputFolder -is [bool])) {
     throw "Parametr `$fromOwnInputFolder is not set properly. It's value have to be $true or $false."
@@ -68,9 +83,6 @@ function validateParameters () {
   }
   if (!(Test-Path "$mainFolder\input") -and $fromOwnInputFolder -eq $false) {
     throw "Input folder $mainFolder\input does not exist."
-  }
-  if (!(Test-Path "$mainFolder\output")) {
-    throw "Main folder $mainFolder\output does not exist."
   }
   if ($sourceSystem -in $null,"" -or !($SourceSystem -is [string])) {
     throw "Parametr `$sourceSystem does not have valid value. Check documentation for more information about this parametr."
@@ -98,7 +110,7 @@ function validateParameters () {
   }
 }
 
-function getRowNumberOfText ($file, [string]$search) {
+function getRowNumberOfText ($file, $search) {
   $searchedLine = Get-Content "$inputFolder\$file" -encoding $inputFilesEncoding | Select-String $search
   if ($searchedLine -eq $null) {
     return $null
@@ -131,7 +143,7 @@ function createEmptiedFileInFolder ($file, $sourceFolder, $targetFolder) {
     Clear-Content "$targetFolder\$fileName"
 }
 
-function createFileFromArray ($file, [System.Collections.ArrayList]$array, $folder) {
+function createFileFromArray ($file, $array, $folder) {
   $fileName = $file.Name
   if ($inputFilesEncoding.ToLower() -eq 'utf8') {
   $Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
@@ -143,7 +155,7 @@ function createFileFromArray ($file, [System.Collections.ArrayList]$array, $fold
   }
 }
 
-function createArrayFromString ([string]$string) {
+function createArrayFromString ($string) {
     $arrayFromString = $string.Split(";",[System.StringSplitOptions]::RemoveEmptyEntries) 
     [int] $arrayCounter = 0
     foreach ($string in $arrayFromString) {
@@ -222,7 +234,7 @@ function processFile ($file) {
       # Creating new output file with HEAD of input file
       [System.Collections.ArrayList]$scriptHeadArray = @(Get-Content "$inputFolder\$file" -encoding $inputFilesEncoding)
       [int] $RowsInFile = $scriptHeadArray.count
-      [int] $headEnd = $scriptStart + 2
+      [int] $headEnd = $scriptStart + 2  
       $scriptHeadArray.RemoveRange($headEnd,$RowsInFile - $headEnd)
       createFileFromArray $file $scriptHeadArray $outputFolder
 
@@ -248,10 +260,9 @@ function processFile ($file) {
 }
 
 function createLogFile () {
-    $logFileDir = "$mainFolder\log"
     $Stamp = (Get-Date).toString("dd-MM-yyyy HHmmss")
     $logFileName = "run." + $Stamp -replace " ","."
-    $newLogFile = New-Item "$logFileDir\$logFileName.log" -ItemType file 
+    $newLogFile = New-Item "$logFileFolder\$logFileName.log" -ItemType file 
     return $newLogFile
 }
 

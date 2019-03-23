@@ -37,7 +37,7 @@ ehthumbs.db
 Thumbs.db
 
 # Directories with generated files #
-/input/*
+/input/*.txt
 /output/*
 /log/*
 /*.txt
