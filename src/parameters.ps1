@@ -10,9 +10,6 @@ $ignoreFileStrings = ""
 #$copyFileStrings can contain one or multiple strings divided by ';', file is copied with whole content to output when any of defined strings are found in that file
 $copyFileStrings = ""
 
-#default value is uft8, for more possible values check documentation
-$inputFilesEncoding = "utf8"
-
 
 <## Folder Management Parameters ##>
 #base folder with needed subfolders and files
