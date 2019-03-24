@@ -25,3 +25,13 @@ $string = "ID_pkbaux_C_Adjustment_Type.txt"
 $string = $string.Remove(0,10)
 $string.IndexOf(".txt")
 $string = $string.Remove($string.IndexOf(".txt"),3)
+
+
+$allFiles = Get-ChildItem -Path "C:\Users\Honza\Dropbox\Škola\VŠE -Inženýr\Diplomka\zdroje z prace\I_Phase"
+Clear-Content "C:\Users\Honza\sourceSystem.txt"
+foreach ($file in $allFiles) {
+    $searchedContent = (Get-Content $file.FullName) | ? { $_ -like "*source system*" } | Sort-Object
+    Add-Content -Path "C:\Users\Honza\sourceSystems.txt" -Value $searchedContent
+}
+$deduplicatedcontent = get-content "C:\Users\Honza\sourceSystem.txt" | Select-Object -Unique
+Set-Content -Path "C:\Users\Honza\sourceSystemsdeduplicated.txt" -Value $searchedContent

@@ -154,7 +154,7 @@ function createArrayFromString ($string) {
         $arrayFromString[$arrayCounter] = $string.trim()
         $arrayCounter++
     }
-    return ,$arrayFromString #quote is important for keeping array data type when array is empty
+    return ,$arrayFromString #quote is important for keeping array data type even when array is empty
 }
 
 function isAnyStringFromArrayInFile ($file, $stringArray) {
