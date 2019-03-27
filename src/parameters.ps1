@@ -15,17 +15,17 @@ $copyFileStrings = ""
 
 <## Folder Management Parameters ##>
 #base folder with needed subfolders and files
-$mainFolder = "C:\git\I_Phase_selected" 
+$mainFolder = "C:\Users\jrakos\Documents\git\I_Phase_Selected" 
 
-$fromOwnInputFolder = ""
-$ownInputFolder = "C:\Users\Honza\Dropbox\Škola\VŠE -Inženýr\Diplomka\zdroje z prace\I_Phase"
+$fromOwnInputFolder = $false
+$ownInputFolder = "C:\Users\jrakos\Documents\git\I_Phase_Selected"
 
 $createFilesForIFPC = $true
 $IFPCFolder = "$mainFolder"
 
 
 <## Conversion Parameters ##>
-$isConversionWanted = ""
+$isConversionWanted = $null
 $doOnlyConversion = $false
 
 $ownConfigurationFile = $false

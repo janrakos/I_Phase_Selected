@@ -81,43 +81,48 @@ function logWrite ($message) {
 
 function validateParameters () {
     if (!($isConversionWanted -is [bool])) {
-        throw "Parametr `$isConversionWanted is not set properly. It's value have to be $true or $false."
+        Set-Variable -Force -Name "isConversionWanted" -Value $true -Scope Global
+        logWrite "WARNING: Parametr `$isConversionWanted is not set properly. It's value should be $true or $false. Process will continue with default value, which is $true."
     }
     if (!($doOnlyConversion -is [bool]) -and $isConversionWanted -eq $true) {
-        throw "Parametr `$doOnlyConversion is not set properly. It's value have to be $true or $false."
+        Set-Variable -Force -Name "doOnlyConversion" -Value $false -Scope Global
+        logWrite "WARNING: Parametr `$doOnlyConversion is not set properly. It's value have to be $true or $false. Process will continue with default value, which is $false."
     }
     if (($sourceSystem -in $null,"" -or !($SourceSystem -is [string])) -and !($isConversionWanted -eq $true -and $doOnlyConversion -eq $true)) {
-        throw "Parametr `$sourceSystem does not have valid value. Check documentation for more information about this parametr."
+        throw "Parametr `$sourceSystem is mandatory and does not have valid value. For possible values check documentation."
     }
     if (!($copyFileStrings -is [string]) -and !($isConversionWanted -eq $true -and $doOnlyConversion -eq $true)) {
-        throw "Parametr `$copyStrings does not have valid value. Check documentation for more information about this parametr."
+        Set-Variable -Force -Name "copyFileStrings" -Value "" -Scope Global
+        logWrite "WARNING: Parametr `$copyFileStrings is not set properly. It's value have to be string. Process will continue with default value, which is empty string."
     }
     if (!($ignoreFileStrings -is [string]) -and !($isConversionWanted -eq $true -and $doOnlyConversion -eq $true)) {
-        throw "Parametr `$ignoreStrings does not have valid value. Check documentation for more information about this parametr."
+        Set-Variable -Force -Name "ignoreFileStrings" -Value "" -Scope Global
+        logWrite "WARNING: Parametr `$ignoreFileStrings is not set properly. It's value have to be string. Process will continue with default value, which is empty string."
     }
     if (!(Test-Path $ownInputFolder) -and $fromOwnInputFolder -eq $true) {
-        throw "Input folder $ownInputFolder does not exist."
-    }
-    if (!(Test-Path "$mainFolder\input") -and $fromOwnInputFolder -eq $false) {
-        throw "Input folder $mainFolder\input does not exist."
+        throw "Input folder $ownInputFolder does not exist. Please enter a valid path."
     }
     if (!($createFilesForIFPC -is [bool])) {
-        throw "Parametr `$createFilesForIFPC is not set properly. It's value have to be $true or $false."
+        Set-Variable -Force -Name "createFilesForIFPC" -Value $true -Scope Global
+        logWrite "WARNING: Parametr `$createFilesForIFPC is not set properly. It's value have to be $true or $false. Process will continue with default value, which is $true."
     }
     if (!(Test-Path $IFPCFolder) -and $createFilesForIFPC -eq $true) {
-        throw "Input folder $IFPCFolder does not exist."
+        logWrite "WARNING: Specified IFPC path $IFPCFolder does not exist. Process will continue with default value, which is $mainFolder."
+        Set-Variable -Force -Name "createFilesForIFPC" -Value $mainFolder -Scope Global
     }
     if (!($ownConfigurationFile -is [bool]) -and $isConversionWanted -eq $true) {
-        throw "Parametr `$ownConversionDefinitionFile is not set properly. It's value have to be $true or $false."
+        Set-Variable -Force -Name "ownConfigurationFile" -Value $false -Scope Global
+        logWrite "WARNING: Parametr `$ownConfigurationFile is not set properly. It's value have to be $true or $false. Process will continue with default value, which is $false."
     }
-    if (!(Test-Path "$mainFolder\src\cfg\$ConversionDefinitionFile") -and $isConversionWanted -eq $true -and $ownConfigurationFile -eq $true) {
-        throw "File $ConversionDefinitionFile does not exist."
+    if (!(Test-Path $configurationFile) -and $isConversionWanted -eq $true -and $ownConfigurationFile -eq $true) {
+        throw "Configuration file $configurationFile does not exist. Please enter a valid path to needed configuration file."
     }
     if (!($targetEnvironment.ToLower() -in "dev", "kpse", "kpseuat" ) -and $isConversionWanted -eq $true -and $ownConfigurationFile -eq $false) {
-        throw "Parametr `$targetEnvironment does not have valid value. Check documentation for more information about this parametr."
+        throw "Parametr `$targetEnvironment is mandatory and does not have valid value. For possible values check documentation."
     }
     if (!($productionDataLoad -is [bool]) -and $isConversionWanted -eq $true -and $ownConfigurationFile -eq $false) {
-        throw "Parametr `$productionDataLoad is not set properly. It's value have to be $true or $false."
+        Set-Variable -Force -Name "productionDataLoad" -Value $false -Scope Global
+        logWrite "WARNING: Parametr `$productionDataLoad is not set properly. It's value have to be $true or $false. Process will continue with default value, which is $false."
     }
 }
 
@@ -126,7 +131,7 @@ function setupInputDir () {
 		$inputFolder = $ownInputFolder
 	}
     else {
-        $inputFolder = "$mainFolder\input"
+        $inputFolder = setupDir "input"
     }
     return $inputFolder
 }
