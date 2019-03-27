@@ -1,7 +1,6 @@
 ﻿pravidla codu:
 - not using aliases (více čitelný kód pro ostatní)
 - dot sourcing (oddělené funkce)
-- paths přizpůsobeny IFPC filesystemu (používání IFPC proměnných pomocí Env:)
 
 funkcionality:
 - možnost vybrat, jestli chci brát skripty ze standartního adresáře nebo si vybrat podmnožinu sám vložením libovolného množství skriptů do složky input
@@ -14,7 +13,6 @@ funkcionality:
 
 
 Vývoj obecně (praktická část DP):
-- technicky: diagram funkcí a vztahy mezi nimi?
 - výběr technologie (java vs PS)
 - popis architektury datového skladu včetně popisu prostředí, ve kterém bude aplikace fungovat
 - popis požadavků na systém - funkční i nefunkční

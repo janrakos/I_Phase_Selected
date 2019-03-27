@@ -80,17 +80,20 @@ function logWrite ($message) {
 }
 
 function validateParameters () {
-    if ($sourceSystem -in $null,"" -or !($SourceSystem -is [string])) {
+    if (!($isConversionWanted -is [bool])) {
+        throw "Parametr `$isConversionWanted is not set properly. It's value have to be $true or $false."
+    }
+    if (!($doOnlyConversion -is [bool]) -and $isConversionWanted -eq $true) {
+        throw "Parametr `$doOnlyConversion is not set properly. It's value have to be $true or $false."
+    }
+    if (($sourceSystem -in $null,"" -or !($SourceSystem -is [string])) -and !($isConversionWanted -eq $true -and $doOnlyConversion -eq $true)) {
         throw "Parametr `$sourceSystem does not have valid value. Check documentation for more information about this parametr."
     }
-    if (!($copyFileStrings -is [string])) {
+    if (!($copyFileStrings -is [string]) -and !($isConversionWanted -eq $true -and $doOnlyConversion -eq $true)) {
         throw "Parametr `$copyStrings does not have valid value. Check documentation for more information about this parametr."
     }
-    if (!($ignoreFileStrings -is [string])) {
+    if (!($ignoreFileStrings -is [string]) -and !($isConversionWanted -eq $true -and $doOnlyConversion -eq $true)) {
         throw "Parametr `$ignoreStrings does not have valid value. Check documentation for more information about this parametr."
-    }
-    if (!($fromOwnInputFolder -is [bool])) {
-        throw "Parametr `$fromOwnInputFolder is not set properly. It's value have to be $true or $false."
     }
     if (!(Test-Path $ownInputFolder) -and $fromOwnInputFolder -eq $true) {
         throw "Input folder $ownInputFolder does not exist."
@@ -103,12 +106,6 @@ function validateParameters () {
     }
     if (!(Test-Path $IFPCFolder) -and $createFilesForIFPC -eq $true) {
         throw "Input folder $IFPCFolder does not exist."
-    }
-    if (!($isConversionWanted -is [bool])) {
-        throw "Parametr `$isConversionWanted is not set properly. It's value have to be $true or $false."
-    }
-    if (!($doOnlyConversion -is [bool]) -and $isConversionWanted -eq $true) {
-        throw "Parametr `$doOnlyConversion is not set properly. It's value have to be $true or $false."
     }
     if (!($ownConfigurationFile -is [bool]) -and $isConversionWanted -eq $true) {
         throw "Parametr `$ownConversionDefinitionFile is not set properly. It's value have to be $true or $false."
@@ -125,9 +122,9 @@ function validateParameters () {
 }
 
 function setupInputDir () {
-    if ($fromOwnInputFolder -eq $true) {
-        $inputFolder = $ownInputFolder
-    }
+	if ($fromOwnInputFolder -is [bool] -and $fromOwnInputFolder -eq $true) {
+		$inputFolder = $ownInputFolder
+	}
     else {
         $inputFolder = "$mainFolder\input"
     }
@@ -311,7 +308,7 @@ function setupConfigurationFile () {
                     $tableName = $file.Name
                     $tableName = $tableName.Remove(0,10)
                     $tableName = $tableName.Remove($tableName.IndexOf(".txt"),4)
-                    Add-Content -Path $generatedFile -Value "pkb_aux.$tableName#pkb_aux_$targetEnvironment.$tableName" 
+                    Add-Content -Path $generatedFile -Value "pkb_aux\.$tableName#pkb_aux_$targetEnvironment.$tableName" 
                 }
             }
         }
