@@ -13,7 +13,7 @@ function Main () {
             foreach ($file in $allFiles) {
                 copyFileToFolder $file $inputFolder $outputFolder
             }
-			logWrite "Scripts was copied from $inputFolder to output."
+			logWrite "Scripts were copied from $inputFolder to $outputFolder."
         }
         else {
             $scriptStartString = "MD_SCRIPT_TIMES.SCRIPT_START"
