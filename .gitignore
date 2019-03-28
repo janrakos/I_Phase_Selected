@@ -19,7 +19,7 @@
 *.rar
 *.tar
 *.zip
-*.cfg
+
 
 # Logs and databases #
 ######################
@@ -42,3 +42,4 @@ Thumbs.db
 /output/*
 /log/*
 /*.txt
+*.cfg

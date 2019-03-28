@@ -46,3 +46,10 @@ pozadavky clenit podle pozadavku od vyvojaru a od autora pro zefektivneni system
 - ignore skripty - aby se zbytecne neprocesovaly nepotrebne skripty
 
 nyni odpadla nevyhoda v procesu :) - nyni se logy vytvari v poslednim testu nasazovaneho balicku, tento tool je vsak urcen pro prvotni testovani nebo pro loadovani testovacich dat, ale pro nasazovani urvćen neni
+
+zkratky:
+BTEQ
+IFPC
+UML
+DDL
+TC
