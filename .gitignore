@@ -39,7 +39,7 @@ Thumbs.db
 
 # Directories with generated files #
 /input/*.txt
-/output/*
-/log/*
+/output/*.txt
+/log/*.log
 /*.txt
 *.cfg
