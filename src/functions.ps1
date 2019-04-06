@@ -282,7 +282,7 @@ function processFile ($file) {
 }
 
 function convertFiles ($files) {
-    $conversionDefinitionFile = setupConfigurationFile
+    $conversionDefinitionFile = setupConfigurationFile $files
 	if ($conversionDefinitionFile -ne $null) {
 		$ConvDefFileRows = @(Get-Content $conversionDefinitionFile )
 		$patterns = @()
@@ -306,7 +306,7 @@ function convertFiles ($files) {
 	}
 }
 
-function setupConfigurationFile () {
+function setupConfigurationFile ($files) {
     if ($ownConfigurationFile -eq $true) {
         return "$mainFolder\src\cfg\$configurationFile"
     }
