@@ -282,25 +282,27 @@ function processFile ($file) {
 
 function convertFiles ($files) {
     $conversionDefinitionFile = setupConfigurationFile
-    $ConvDefFileRows = @(Get-Content $conversionDefinitionFile )
-    $patterns = @()
-    $replacingStrings = @()
-    foreach ($fileRow in $ConvDefFileRows) {
-        if ($fileRow -ne "") {
-            $separatorIndex = $fileRow.IndexOf("#")
-            $fileRowLength = $fileRow.length
-            $pattern = $fileRow.Substring(0,$separatorIndex)
-            $replacingString = $fileRow.Substring($separatorIndex+1,$fileRowLength-$separatorIndex-1)
-            $patterns += $pattern
-            $replacingStrings += $replacingString
-        }
-    }
-    foreach ($file in $files) {
-        for ($i=0; $i -lt $patterns.count; $i++) {
-            replaceStringInFile $file.FullName $patterns[$i] $replacingStrings[$i]
-        }
-    }
-    logWrite "Files in output folder were succesfully converted using configuration file $conversionDefinitionFile."
+	if ($conversionDefinitionFile -ne $null) {
+		$ConvDefFileRows = @(Get-Content $conversionDefinitionFile )
+		$patterns = @()
+		$replacingStrings = @()
+		foreach ($fileRow in $ConvDefFileRows) {
+			if ($fileRow -ne "") {
+				$separatorIndex = $fileRow.IndexOf("#")
+				$fileRowLength = $fileRow.length
+				$pattern = $fileRow.Substring(0,$separatorIndex)
+				$replacingString = $fileRow.Substring($separatorIndex+1,$fileRowLength-$separatorIndex-1)
+				$patterns += $pattern
+				$replacingStrings += $replacingString
+			}
+		}
+		foreach ($file in $files) {
+			for ($i=0; $i -lt $patterns.count; $i++) {
+				replaceStringInFile $file.FullName $patterns[$i] $replacingStrings[$i]
+			}
+		}
+		logWrite "Files in output folder were succesfully converted using configuration file $conversionDefinitionFile."
+	}
 }
 
 function setupConfigurationFile () {
@@ -308,27 +310,38 @@ function setupConfigurationFile () {
         return "$mainFolder\src\cfg\$configurationFile"
     }
     else {
-        $patternFile = "$mainFolder\src\cfg\defaultConfigurationPattern.cfg"
-        $generatedFile = "$mainFolder\src\cfg\generatedConfiguration.cfg"
-        Clear-Content $generatedFile
-        Get-Content -Path $patternFile  | Set-Content -Path $generatedFile
-        replaceStringInFile $generatedFile "\*ENV\*" $targetEnvironment
-        if ($productionDataLoad -eq $true) {
-            replaceStringInFile $generatedFile "\*TESTLOAD\*.*\n" $null
-            foreach ($file in $files) {
-                If ((Get-Content $file.FullName) -ne $Null -and $file.Name -like "*_pkbaux_*") {
-                    $tableName = $file.Name
-                    $tableName = $tableName.Remove(0,10)
-                    $tableName = $tableName.Remove($tableName.IndexOf(".txt"),4)
-                    Add-Content -Path $generatedFile -Value "pkb_aux\.$tableName#pkb_aux_$targetEnvironment.$tableName" 
-                }
+		if (!(Test-Path "$mainFolder\src\cfg\defaultConfigurationPattern.cfg")) {
+			logWrite "WARNING: Cannot find configuration pattern file $mainFolder\src\cfg\defaultConfigurationPattern.cfg. Process will continue without conversion."
+			return $null
+		}
+		else {
+            if (!(Test-Path "$mainFolder\src\cfg\generatedConfiguration.cfg")) {
+                $generatedFile = New-Item "$mainFolder\src\cfg\generatedConfiguration.cfg" -ItemType file
             }
-        }
-        else {
-            replaceStringInFile $generatedFile "\*TESTLOAD\*" $null
-        }
-        (Get-Content $generatedFile ) | ? { -not [String]::IsNullOrWhiteSpace($_) } | Set-Content $generatedFile
-        return $generatedFile
+            else {
+                $generatedFile = "$mainFolder\src\cfg\generatedConfiguration.cfg"
+            }
+			$patternFile = "$mainFolder\src\cfg\defaultConfigurationPattern.cfg"
+			Clear-Content $generatedFile
+			Get-Content -Path $patternFile  | Set-Content -Path $generatedFile
+			replaceStringInFile $generatedFile "\*ENV\*" $targetEnvironment
+			if ($productionDataLoad -eq $true) {
+				replaceStringInFile $generatedFile "\*TESTLOAD\*.*\n" $null
+				foreach ($file in $files) {
+					If ((Get-Content $file.FullName) -ne $Null -and $file.Name -like "*aux_*") {
+						$tableName = $file.Name
+						$tableName = $tableName.Remove(0,10)
+						$tableName = $tableName.Remove($tableName.IndexOf(".txt"),4)
+						Add-Content -Path $generatedFile -Value "pkb_aux\.$tableName#pkb_aux_$targetEnvironment.$tableName" 
+					}
+				}
+			}
+			else {
+				replaceStringInFile $generatedFile "\*TESTLOAD\*" $null
+			}
+			(Get-Content $generatedFile ) | ? { -not [String]::IsNullOrWhiteSpace($_) } | Set-Content $generatedFile
+			return $generatedFile
+			}
     }    
 }
 
