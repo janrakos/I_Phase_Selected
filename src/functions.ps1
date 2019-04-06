@@ -57,6 +57,7 @@ function Main () {
         $ErrorMessage = $_.Exception.Message
         logWrite "ERROR: $ErrorMessage"
         logWrite "Terminating."
+		Exit 1
     }
 }
 
