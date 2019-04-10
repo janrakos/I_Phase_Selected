@@ -329,11 +329,16 @@ function setupConfigurationFile ($files) {
 			if ($productionDataLoad -eq $true) {
 				replaceStringInFile $generatedFile "\*TESTLOAD\*.*\n" $null
 				foreach ($file in $files) {
-					If ((Get-Content $file.FullName) -ne $Null -and $file.Name -like "*aux_*") {
-						$tableName = $file.Name
-						$tableName = $tableName.Remove(0,10)
-						$tableName = $tableName.Remove($tableName.IndexOf(".txt"),4)
-						Add-Content -Path $generatedFile -Value "pkb_aux\.$tableName#pkb_aux_$targetEnvironment.$tableName" 
+					If ((Get-Content $file.FullName) -ne $Null -and $file.Name -cmatch "aux_|dw_") {
+						$fileName = $file.Name
+                        $extractedName = $fileName.Split("_",3) | Select -Index 2 
+                        $tableName = $extractedName -creplace "(_[A-Z]{3,})?\.txt", ""
+                        if ($fileName -cmatch "aux_" -and (Get-Content $generatedFile -Raw) -cnotmatch ("pkb_aux\\\."+[regex]::escape($tableName))) {
+						    Add-Content -Path $generatedFile -Value "pkb_aux\.$tableName#pkb_aux_$targetEnvironment.$tableName" 
+                        }
+                        elseif ($fileName -cmatch "dw_" -and (Get-Content $generatedFile -Raw) -cnotmatch ("pkb_dw\\\."+[regex]::escape($tableName))) {
+                            Add-Content -Path $generatedFile -Value "pkb_dw\.$tableName#pkb_dw_$targetEnvironment.$tableName"
+                        }
 					}
 				}
 			}
