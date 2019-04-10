@@ -1,14 +1,13 @@
 function Main () {
     $ErrorActionPreference = "Stop"
     $mainFolder = Split-Path -Path $PSScriptRoot
-    $outputFolder = setupDir "output"
-    $logFileFolder = setupDir "log"
+    setupOutputDir
+    $outputFolder = "$mainFolder\output"
     $logFile = createLogFile
     try { #thanks to try we can catch errors and log them in log file 
         validateParameters
         $inputFolder = setupInputDir
         $allFiles = Get-ChildItem -Path $inputFolder | Where-Object { !$_.PSIsContainer } | Sort-Object
-        Remove-Item "$outputFolder\*.*"
         if ($isConversionWanted -eq $true -and $doOnlyConversion -eq $true) {
             foreach ($file in $allFiles) {
                 copyFileToFolder $file $inputFolder $outputFolder
@@ -61,19 +60,20 @@ function Main () {
     }
 }
 
-function setupDir ($dir) {
-    if (!(Test-Path "$mainFolder\$dir")) {
-        New-Item "$mainFolder\$dir" -itemtype directory
+function setupOutputDir () {
+    if (!(Test-Path "$mainFolder\output")) {
+        New-Item -Path "$mainFolder\output" -ItemType directory
     }
-    $settedUpFolder = "$mainFolder\$dir"
-    return $settedUpFolder
+    else {
+        Remove-Item "$mainFolder\output\*.*"
+    }
 }
 
 function createLogFile () {
-    $Stamp = (Get-Date).toString("dd-MM-yyyy HHmmss")
-    $logFileName = "run." + $Stamp -replace " ","."
-    $newLogFile = New-Item "$logFileFolder\$logFileName.log" -ItemType file 
-    return $newLogFile
+    $Stamp = (Get-Date).toString("dd-MM-yyyy.HHmmss")
+    $logFileFullName = "run." + $Stamp + ".log"
+    $logfile = New-Item -Force -Path "$mainFolder\log" -Name $logFileFullName -ItemType file
+    return $logfile
 }
 
 function logWrite ($message) {
