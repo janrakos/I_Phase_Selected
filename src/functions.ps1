@@ -1,12 +1,12 @@
 function Main () {
     $ErrorActionPreference = "Stop"
     $mainFolder = Split-Path -Path $PSScriptRoot
-    setupOutputDir
-    $outputFolder = "$mainFolder\output"
     $logFile = createLogFile
     try { #thanks to try we can catch errors and log them in log file 
         validateParameters
         $inputFolder = setupInputDir
+		setupOutputDir
+        $outputFolder = "$mainFolder\output"
         $allFiles = Get-ChildItem -Path $inputFolder | Where-Object { !$_.PSIsContainer } | Sort-Object
         if ($isConversionWanted -eq $true -and $doOnlyConversion -eq $true) {
             foreach ($file in $allFiles) {
