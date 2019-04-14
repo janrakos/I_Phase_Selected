@@ -9,7 +9,7 @@ $copyFileStrings = ""
 <## Folder Management Parameters ##>
 $fromOwnInputFolder = $false
 $ownInputFolder = "Path_To_Own_Input_Folder"
-$createFilesForIFPC = $true
+$createFilesForIFPC = $false
 $IFPCFolder = "Path_To_IFPC" #this path has to be set correctly for default run
 
 <## Conversion Parameters ##>
@@ -20,5 +20,5 @@ $configurationFile = "ownConfiguration.cfg"
 $targetEnvironment = "dev" #this parametr can contain only values: dev, test or testuat
 $productionDataLoad = $false
 
-. "$PSScriptRoot\functions.ps"
+. "$PSScriptRoot\functions.ps1"
 Main

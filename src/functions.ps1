@@ -1,15 +1,15 @@
 function Main () {
     $ErrorActionPreference = "Stop"
-    $mainFolder = Split-Path -Path $PSScriptRoot
+    $mainFolder = Split-Path -Parent $PSScriptRoot
     $logFile = createLogFile
-    try { #thanks to try we can catch errors and log them in log file 
+    try { #thanks to try we can catch errors and log them in a log file 
         validateParameters
-        $inputFolder = setupInputDir
-		setupOutputDir
-        $outputFolder = "$mainFolder\output"
-        $allFiles = Get-ChildItem -Path $inputFolder | Where-Object { !$_.PSIsContainer } | Sort-Object
+        setupInputDir
+        setupOutputDir
+        $inputFiles = Get-ChildItem -Path $inputFolder | 
+		Where-Object { !$_.PSIsContainer }
         if ($isConversionWanted -eq $true -and $doOnlyConversion -eq $true) {
-            foreach ($file in $allFiles) {
+            foreach ($file in $inputFiles) {
                 copyFileToFolder $file $inputFolder $outputFolder
             }
 			logWrite "Scripts were copied from $inputFolder to $outputFolder."
@@ -19,7 +19,7 @@ function Main () {
             $scriptEndString = "MD_SCRIPT_TIMES.SCRIPT_END"
             $copyStringsArray = createArrayFromString $copyFileStrings
             $ignoreStringsArray = createArrayFromString $ignoreFileStrings
-            foreach ($file in $allFiles) {
+            foreach ($file in $inputFiles) {
                 $fileName = $file.Name
                 $scriptStart = getRowNumberOfText $file $scriptStartString
                 $scriptEnd = getRowNumberOfText $file $scriptEndString
@@ -32,7 +32,7 @@ function Main () {
                     copyFileToFolder $file $inputFolder $outputFolder
                     logWrite "Script $fileName contains one or more copy strings. Script was copied from input folder without processing."
                 }
-                elseif ($ScriptStart -eq $null -or $ScriptEnd -eq $null -or $scriptStart -eq "MultipleRowsFoundError" -or $scriptEnd -eq "MultipleRowsFoundError") {
+                elseif ($ScriptStart -in $null,"MultipleRowsFoundError" -or $ScriptEnd -in $null,"MultipleRowsFoundError") {
                     copyFileToFolder $file $inputFolder $outputFolder
                     logWrite "WARNING: Problem in finding Start or End of skript $fileName. Script was copied from input folder without processing."
                 }
@@ -41,7 +41,8 @@ function Main () {
                 }
             }
         }
-        $outputFiles = Get-ChildItem -Path $outputFolder | Where-Object { !$_.PSIsContainer } | Sort-Object
+        $outputFiles = Get-ChildItem -Path $outputFolder | 
+		Where-Object { !$_.PSIsContainer }
         if ($isConversionWanted -eq $true) {
             convertFiles $outputFiles
         }
@@ -52,7 +53,7 @@ function Main () {
             logWrite "Files in output folder were succesfully copied to $IFPCFolder."
         }
     }
-    Catch {
+    catch {
         $ErrorMessage = $_.Exception.Message
         logWrite "ERROR: $ErrorMessage"
         logWrite "Terminating."
@@ -60,19 +61,10 @@ function Main () {
     }
 }
 
-function setupOutputDir () {
-    if (!(Test-Path "$mainFolder\output")) {
-        New-Item -Path "$mainFolder\output" -ItemType directory
-    }
-    else {
-        Remove-Item "$mainFolder\output\*.*"
-    }
-}
-
 function createLogFile () {
     $Stamp = (Get-Date).toString("dd-MM-yyyy.HHmmss")
-    $logFileFullName = "run." + $Stamp + ".log"
-    $logfile = New-Item -Force -Path "$mainFolder\log" -Name $logFileFullName -ItemType file
+    $logFileName = "run." + $Stamp + ".log"
+    $logfile = New-Item -Force -Path "$mainFolder\log" -Name $logFileName -ItemType file
     return $logfile
 }
 
@@ -139,21 +131,29 @@ function setupInputDir () {
 		$inputFolder = $ownInputFolder
 	}
     else {
-        $inputFolder = setupDir "input"
+		if (!(Test-Path "$mainFolder\input")) {
+			throw "Default input folder $mainFolder\input doesn't exist."
+		}
+        $inputFolder = "$mainFolder\input"
     }
-    return $inputFolder
+    Set-Variable -Name "inputFolder" -Value $inputFolder -Scope Global
 }
 
-function deleteFilefromFolder ($file, $folder) {
-    $fileName = $file.Name
-    if (Test-Path "$folder\$fileName") {
-        Remove-Item "$folder\$fileName"
+function setupOutputDir () {
+    if (!(Test-Path "$mainFolder\output")) {
+        New-Item -Path "$mainFolder\output" -ItemType directory
     }
+    else {
+        Remove-Item "$mainFolder\output\*.*"
+    }
+	Set-Variable -Name "outputFolder" -Value "$mainFolder\output" -Scope Global
 }
 
 function copyFileToFolder ($file, $sourceFolder, $targetFolder) {
     $fileName = $file.Name
-    deleteFilefromFolder $file $targetFolder
+    if (Test-Path "$folder\$fileName") {
+        Remove-Item "$folder\$fileName"
+    }
     Copy-Item "$sourceFolder\$fileName" -Destination $targetFolder
 }
 
