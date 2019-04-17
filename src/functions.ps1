@@ -116,7 +116,6 @@ function validateParameters () {
         throw "Configuration file $configurationFile does not exist. Please enter a valid path to needed configuration file."
     }
     if (!($targetEnvironment.ToLower() -in "dev", "kpse", "kpseuat" ) -and $isConversionWanted -eq $true -and $ownConfigurationFile -eq $false) {
-        throw "Parametr `$targetEnvironment is mandatory and does not have valid value. For possible values check documentation."
 		Set-Variable -Force -Name "targetEnvironment" -Value "dev" -Scope Global
         logWrite "WARNING: Parametr `$targetEnvironment is not set properly. For possinble values check documentation. Process will continue with default value, which is 'dev'."
     }
@@ -196,12 +195,6 @@ function getRowNumberOfText ($file, $search) {
     }
 }
 
-function copyEmptiedFileToFolder ($file, $sourceFolder, $targetFolder) {
-    $fileName = $file.Name
-    copyFileToFolder $file $sourceFolder $targetFolder
-    Clear-Content "$targetFolder\$fileName"
-}
-
 function processFile ($file) {
     $sourceSystemArray = createArrayFromString $sourceSystem
     $sourceSystemStartString = "source system SourceSystemName script start"
@@ -249,7 +242,8 @@ function processFile ($file) {
         copyFileToFolder $file $inputFolder $outputFolder
     }
     elseif ($emptyFileFlag -eq $true) {
-        copyEmptiedFileToFolder $file $inputFolder $outputFolder
+        copyFileToFolder $file $inputFolder $outputFolder
+		Clear-Content "$outputFolder/$file"
         logWrite "Any of source systems defined in `$SourceSystem parametr was not found in script $fileName. Content of the file was deleted."
     }
     else {
