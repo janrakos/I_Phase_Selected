@@ -310,14 +310,8 @@ function setupConfigurationFile ($files) {
 			return $null
 		}
 		else {
-            if (!(Test-Path "$mainFolder\src\cfg\generatedConfiguration.cfg")) {
-                $generatedFile = New-Item "$mainFolder\src\cfg\generatedConfiguration.cfg" -ItemType file
-            }
-            else {
-                $generatedFile = "$mainFolder\src\cfg\generatedConfiguration.cfg"
-            }
-			$patternFile = "$mainFolder\src\cfg\defaultConfigurationPattern.cfg"
-			Clear-Content $generatedFile
+            $generatedFile = "$mainFolder\src\cfg\generatedConfiguration.cfg"
+            $patternFile = "$mainFolder\src\cfg\defaultConfigurationPattern.cfg"
 			Get-Content -Path $patternFile  | Set-Content -Path $generatedFile
 			replaceStringInFile $generatedFile "\*ENV\*" $targetEnvironment
 			if ($productionDataLoad -eq $true) {
