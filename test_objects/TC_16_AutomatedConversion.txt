@@ -1,0 +1,31 @@
+/***********************************************************************/
+/* Name: TC_16_AutomatedConversion                                     */
+/* Parameters: $doOnlyConversion = $true                               */
+/* Results: Content of file should be converted according to comments. */
+/***********************************************************************/
+
+.LOGON '@logon_user_aux' /* Converted value: '@logon_user_aux_dev' */
+
+database pkb_gtt;
+
+/********** MD_SCRIPT_TIMES.SCRIPT_START **********/
+exec metadata_creation_macro /*this row should be commented*/
+
+/********** Source system SourceA script start **********/
+
+gtt.Table   /* Converted value: gtt_dev.Table */
+errors.Table    /* Converted value: errors_dev.Table */
+prestage.Table    /* Converted value: prestage_dev.Table */
+stage.Table    * Converted value: stage_dev.Table */
+poststage.Table    /* Converted value: poststage_dev.Table */
+aux.Table    /* Converted value: aux_dev.Table */
+dw.Table    /* Converted value: dw_dev.Table */
+ext.Table    /* Converted value: ext_dev.Table */
+o_dwh_date.Table    /* Converted value: o_dwh_date_dev.Table */
+
+/********** Source system SourceA script end **********/
+
+/********** MD_SCRIPT_TIMES.SCRIPT_END **********/
+exec metadata_creation_macro /*this row should be commented*/
+
+.QUIT 0;

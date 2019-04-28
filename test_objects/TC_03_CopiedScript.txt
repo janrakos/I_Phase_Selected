@@ -1,0 +1,30 @@
+/***********************************************************************/
+/* Name: TC_03_CopiedScript                                            */
+/* Parameters: $sourceSystem = 'SourceA'; $isConversionWanted = $false;*/
+/* 	$copyFileStrings = 'TC_03_CopiedScript'                            */
+/* Results: Whole content of file should be copied to output.          */
+/***********************************************************************/
+
+.LOGON '@logon_user'
+
+database pkb_gtt;
+
+/********** MD_SCRIPT_TIMES.SCRIPT_START **********/
+exec metadata_creation_macro
+
+/********** Source system SourceA script start **********/
+This source system should be kept in file.
+/********** Source system SourceA script end **********/
+
+/********** Source system SourceB script start **********/
+This source system should be kept in file.
+/********** Source system SourceB script end **********/
+
+/********** Source system SourceC script start **********/
+This source system should be kept in file.
+/********** Source system SourceC script end **********/
+
+/********** MD_SCRIPT_TIMES.SCRIPT_END **********/
+exec metadata_creation_macro
+
+.QUIT 0;

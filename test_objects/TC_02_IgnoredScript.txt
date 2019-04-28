@@ -1,0 +1,31 @@
+/***********************************************************************/
+/* Name: TC_02_IgnoredScript                                           */
+/* Parameters: $sourceSystem = 'SourceA'; $isConversionWanted = $false;*/
+/* 	$ignoreFileStrings = 'TC_02_IgnoredScript'                         */
+/* Results: File should be ignored. There should'nt be output file     */
+/* 	with name of this file.                                            */
+/***********************************************************************/
+
+.LOGON '@logon_user'
+
+database pkb_gtt;
+
+/********** MD_SCRIPT_TIMES.SCRIPT_START **********/
+exec metadata_creation_macro
+
+/********** Source system SourceA script start **********/
+This source system shouldn't be in output.
+/********** Source system SourceA script end **********/
+
+/********** Source system SourceB script start **********/
+This source system shouldn't be in output.
+/********** Source system SourceB script end **********/
+
+/********** Source system SourceC script start **********/
+This source system shouldn't be in output.
+/********** Source system SourceC script end **********/
+
+/********** MD_SCRIPT_TIMES.SCRIPT_END **********/
+exec metadata_creation_macro
+
+.QUIT 0;

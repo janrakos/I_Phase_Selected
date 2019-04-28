@@ -1,0 +1,29 @@
+/*******************************************************************************/
+/* Name: TC_04_MultipleSourceSystems                                           */
+/* Parameters: $sourceSystem = 'SourceA;SourceB'; $isConversionWanted = $false */
+/* Results: Content of source system SourceC should be deleted from file.      */
+/*******************************************************************************/
+
+.LOGON '@logon_user'
+
+database pkb_gtt;
+
+/********** MD_SCRIPT_TIMES.SCRIPT_START **********/
+exec metadata_creation_macro
+
+/********** Source system SourceA script start **********/
+This source system should be kept in file.
+/********** Source system SourceA script end **********/
+
+/********** Source system SourceB script start **********/
+This source system should be kept in file.
+/********** Source system SourceB script end **********/
+
+/********** Source system SourceC script start **********/
+This source system should be deleted.
+/********** Source system SourceC script end **********/
+
+/********** MD_SCRIPT_TIMES.SCRIPT_END **********/
+exec metadata_creation_macro
+
+.QUIT 0;

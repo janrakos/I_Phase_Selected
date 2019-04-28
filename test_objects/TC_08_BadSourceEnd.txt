@@ -1,0 +1,29 @@
+/***********************************************************************/
+/* Name: TC_08_BadSourceEnd                                            */
+/* Parameters: $sourceSystem = 'SourceA'; $isConversionWanted = $false */
+/* Results: Whole content of the file should be kept in file           */
+/***********************************************************************/
+
+.LOGON '@logon_user'
+
+database pkb_gtt;
+
+/********** MD_SCRIPT_TIMES.SCRIPT_START **********/
+exec metadata_creation_macro
+
+/********** Source system SourceA script start **********/
+This source system should be kept in file.
+/********** Source system SourceD script end **********/
+
+/********** Source system SourceB script start **********/
+This source system should be kept in file.
+/********** Source system SourceB script end **********/
+
+/********** Source system SourceC script start **********/
+This source system should be kept in file.
+/********** Source system SourceC script end **********/
+
+/********** MD_SCRIPT_TIMES.SCRIPT_END **********/
+exec metadata_creation_macro
+
+.QUIT 0;
